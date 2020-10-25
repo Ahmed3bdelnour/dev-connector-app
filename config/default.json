@@ -1,0 +1,4 @@
+{
+    "mongoURI":"mongodb+srv://aibrahim5152:AH0123ah@dev-connector.ihqgp.mongodb.net/<dbname>?retryWrites=true&w=majority",
+    "tokenSecret":"tokenSecret123456"
+}

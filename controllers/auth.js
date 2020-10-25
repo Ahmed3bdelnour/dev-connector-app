@@ -1,13 +1,14 @@
-const { validationResult } = require('express-validator');
-const gravatar = require('gravatar');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const { validationResult } = require("express-validator");
+const gravatar = require("gravatar");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const config = require("config");
 
-const User = require('./../models/User');
+const User = require("./../models/User");
 
 const registerUser = async (req, res) => {
   try {
-    console.log('register request body: ', req.body);
+    console.log("register request body: ", req.body);
 
     const errors = validationResult(req);
 
@@ -20,11 +21,11 @@ const registerUser = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (user) {
-      return res.status(400).json({ errors: [{ msg: 'user already exists' }] });
+      return res.status(400).json({ errors: [{ msg: "user already exists" }] });
     }
 
     // create user avatar
-    const avatar = gravatar.url(email, { s: '200', r: 'pg', d: 'mm' });
+    const avatar = gravatar.url(email, { s: "200", r: "pg", d: "mm" });
 
     user = new User({
       name,
@@ -44,7 +45,7 @@ const registerUser = async (req, res) => {
       },
     };
 
-    const tokenSecret = config.get('tokenSecret');
+    const tokenSecret = config.get("tokenSecret");
 
     const token = jwt.sign(tokenPayload, tokenSecret, {
       expiresIn: 3600,
@@ -53,10 +54,54 @@ const registerUser = async (req, res) => {
     return res.json({ token });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ errors: [{ msg: 'server error' }] });
+    return res.status(500).json({ errors: [{ msg: "server error" }] });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    console.log("login request body: ", req.body);
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ errors: [{ msg: "Invalid credentials" }] });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ errors: [{ msg: "Invalid credentials" }] });
+    }
+
+    const tokenPayload = {
+      user: {
+        id: user.id,
+      },
+    };
+
+    const tokenSecret = config.get("tokenSecret");
+
+    const token = jwt.sign(tokenPayload, tokenSecret, { expiresIn: "1h" });
+
+    return res.json({
+      token,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: [{ msg: "server error" }] });
   }
 };
 
 module.exports = {
   registerUser,
+  loginUser,
 };

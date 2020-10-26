@@ -1,11 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-// method get
-// url 'api/profile'
-// public
-router.get('/', (req, res) => {
-    res.send('profile route');
-})
+const auth = require("./../../middleware/auth");
+const profileController = require("./../../controllers/profile");
+
+// get 'api/profile/me'
+// private
+router.get("/me", auth, profileController.getLoggedInUserProfile);
 
 module.exports = router;

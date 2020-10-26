@@ -6,6 +6,14 @@ const ProfileSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
   },
+  status: {
+    type: String,
+    required: true,
+  },
+  skills: {
+    type: [String],
+    required: true,
+  },
   company: {
     type: String,
   },
@@ -14,14 +22,6 @@ const ProfileSchema = new Schema({
   },
   location: {
     type: String,
-  },
-  status: {
-    type: String,
-    required: true,
-  },
-  skills: {
-    type: [String],
-    required: true,
   },
   bio: {
     type: String,

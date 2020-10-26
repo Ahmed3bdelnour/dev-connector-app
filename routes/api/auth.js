@@ -9,7 +9,7 @@ const authController = require("./../../controllers/auth");
 router.post(
   "/register",
   [
-    check("name").exists().notEmpty().withMessage("Name is required"),
+    check("name").notEmpty().withMessage("Name is required"),
     check("email").isEmail().withMessage("Please enter valid email"),
     check("password")
       .isLength({ min: 6, max: 8 })

@@ -21,4 +21,36 @@ router.post(
   profileController.createOrUpdateProfile
 );
 
+// get 'api/profile'
+// private
+router.get("/", [auth], profileController.getAllProfiles);
+
+// get 'api/profile/:userId'
+// private
+router.get("/:userId", [auth], profileController.getProfileByUserId);
+
+// put 'api/profile/experience'
+// private
+
+router.put(
+  "/experience",
+  [
+    auth,
+    check("title").notEmpty().withMessage("Title is required"),
+    check("company").notEmpty().withMessage("Company is required"),
+    check("location").notEmpty().withMessage("Location is required"),
+    check("from").notEmpty().withMessage("from is required"),
+  ],
+  profileController.addProfileExperience
+);
+
+// delete 'api/profile/experience/:experienceId'
+// private
+
+router.delete(
+  "/experience/:experienceId",
+  [auth],
+  profileController.deleteProfileExperience
+);
+
 module.exports = router;

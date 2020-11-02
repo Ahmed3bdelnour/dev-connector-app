@@ -4,6 +4,7 @@ const { check } = require("express-validator");
 
 const auth = require("./../../middleware/auth");
 const profileController = require("./../../controllers/profile");
+const profile = require("./../../controllers/profile");
 
 // get 'api/profile/me'
 // private
@@ -36,10 +37,12 @@ router.put(
   "/experience",
   [
     auth,
-    check("title").notEmpty().withMessage("Title is required"),
-    check("company").notEmpty().withMessage("Company is required"),
-    check("location").notEmpty().withMessage("Location is required"),
-    check("from").notEmpty().withMessage("from is required"),
+    [
+      check("title").notEmpty().withMessage("Title is required"),
+      check("company").notEmpty().withMessage("Company is required"),
+      check("location").notEmpty().withMessage("Location is required"),
+      check("from").notEmpty().withMessage("from is required"),
+    ],
   ],
   profileController.addProfileExperience
 );
@@ -52,5 +55,35 @@ router.delete(
   [auth],
   profileController.deleteProfileExperience
 );
+
+// put 'api/profile/education'
+// private
+
+router.put(
+  "/education",
+  [
+    auth,
+    [
+      check("school").notEmpty().withMessage("School is required"),
+      check("degree").notEmpty().withMessage("Degree is required"),
+      check("fieldOfStudy").notEmpty().withMessage("FieldOfStudy is required"),
+      check("from").notEmpty().withMessage("From date is required"),
+    ],
+  ],
+  profileController.addProfileEducation
+);
+
+// delete 'api/profile/education/:educationId'
+//private
+router.delete(
+  "/education/:educationId",
+  [auth],
+  profileController.deleteProfileEducation
+);
+
+// get 'api/profile/github/:username'
+//private
+
+router.get("/github/:username", [auth], profileController.getUserRepositories);
 
 module.exports = router;

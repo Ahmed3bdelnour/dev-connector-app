@@ -1,8 +1,7 @@
-const { json } = require("express");
 const { validationResult } = require("express-validator");
-const Profile = require("./../models/Profile");
+const got = require("got");
 
-const User = require("./../models/User");
+const Profile = require("./../models/Profile");
 
 const getLoggedInUserProfile = async (req, res) => {
   try {
@@ -231,6 +230,105 @@ const deleteProfileExperience = async (req, res) => {
   }
 };
 
+const addProfileEducation = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const {
+      school,
+      degree,
+      fieldOfStudy,
+      from,
+      to, //optional
+      current, //current
+      description, //description
+    } = req.body;
+
+    const profile = await Profile.findOne({
+      user: req.user.id,
+    }).populate("user", ["name", "avatar"]);
+
+    if (!profile) {
+      return res
+        .status(404)
+        .json({ errors: [{ msg: "Profile is not found" }] });
+    }
+
+    const newEducation = {};
+
+    newEducation.school = school;
+    newEducation.degree = degree;
+    newEducation.fieldOfStudy = fieldOfStudy;
+    newEducation.from = from;
+    if (to !== null && to !== undefined) newEducation.to = to;
+    if (current !== null && current !== undefined)
+      newEducation.current = current;
+    if (description !== null && description !== undefined)
+      newEducation.description = description;
+
+    profile.education.push(newEducation);
+
+    await profile.save();
+
+    return res.json(profile);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: [{ msg: "Server error" }] });
+  }
+};
+
+const deleteProfileEducation = async (req, res) => {
+  try {
+    const educationId = req.params.educationId;
+    const userId = req.user.id;
+
+    const profile = await Profile.findOne({ user: userId }).populate("user", [
+      "name",
+      "avatar",
+    ]);
+
+    if (!profile) {
+      return res
+        .status(400)
+        .json({ errors: [{ msg: "Profile is not found" }] });
+    }
+
+    const indexToRemove = profile.education
+      .map((edu) => edu.id)
+      .indexOf(educationId);
+    profile.education.splice(indexToRemove, 1);
+
+    await profile.save();
+
+    return res.json(profile);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: [{ msg: "Server error" }] });
+  }
+};
+
+const getUserRepositories = async (req, res) => {
+  try {
+    const githubUsername = req.params.username;
+
+    const { body: repositories } = await got.get(
+      `https://api.github.com/users/${githubUsername}/repos?type='owner'`,
+      {
+        responseType: "json",
+      }
+    );
+
+    return res.json(repositories);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ errors: [{ msg: "Server error" }] });
+  }
+};
+
 module.exports = {
   getLoggedInUserProfile,
   createOrUpdateProfile,
@@ -238,4 +336,7 @@ module.exports = {
   getProfileByUserId,
   addProfileExperience,
   deleteProfileExperience,
+  addProfileEducation,
+  deleteProfileEducation,
+  getUserRepositories,
 };
